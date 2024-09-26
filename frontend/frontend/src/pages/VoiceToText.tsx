@@ -23,14 +23,14 @@ const VoiceToText = () => {
         {/* Animated circles (reverted to previous version) */}
         <div className="relative w-48 h-48 mb-12">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-full h-full border-4 border-green-500 rounded-full animate-pulse"></div>
+            <div className="w-full h-full border-4 border-purple-600 rounded-full animate-pulse"></div>
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-40 h-40 border-4 border-green-400 rounded-full animate-ping"></div>
+            <div className="w-40 h-40 border-4 border-purple-600 rounded-full animate-ping"></div>
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 bg-green-600 rounded-full flex items-center justify-center">
-              <div className="w-24 h-24 bg-black rounded-full"></div>
+            <div className="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-24 h-24 bg-slate-900 rounded-full"></div>
             </div>
           </div>
         </div>

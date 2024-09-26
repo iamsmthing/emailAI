@@ -121,7 +121,7 @@ const AudioRecorder: React.FC = () => {
       </div>
 
       <div className="w-full flex justify-center mb-8">
-        <button onClick={handleRecordClick} className="bg-gray-800 rounded-full w-full content-center justify-center flex p-4 text-green-500 hover:bg-gray-600 transition-colors">
+        <button onClick={handleRecordClick} className="bg-gray-800 rounded-full w-full content-center justify-center flex p-4 text-purple-500 hover:bg-gray-700 hover:font-bold transition-colors">
           <Mic size={24} />
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>

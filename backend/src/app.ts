@@ -245,7 +245,7 @@ app.use(passport.session());
 // Routes
 app.use('/auth', authRoutes);
 server.listen(4001, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Web Socket running on port 4001`);
 });
 
 app.listen(PORT, () => {
