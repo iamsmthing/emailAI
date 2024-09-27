@@ -40,7 +40,7 @@ router.get('/microsoft/callback', async (req, res) => {
    res.setHeader('Set-Cookie', cookie.serialize('access_token_ms', accessToken, {
     httpOnly: false, // Prevent client-side access
     secure: true, // Use secure cookies in production
-    maxAge: 2592000, // Cookie expiration time in seconds (1 month)
+    maxAge: 3600, // Cookie expiration time in seconds (1 hour)
     path: '/', // Path for the cookie
     sameSite:'none'
   }));
@@ -143,7 +143,7 @@ router.get('/google', passport.authenticate('google', {
   res.setHeader('Set-Cookie', cookie.serialize('access_token_g', accessToken, {
     httpOnly: false, // Prevent client-side access
     secure: true, // Use secure cookies in production
-    maxAge: 2592000, // Cookie expiration time in seconds (1 month)
+    maxAge: 3600, // Cookie expiration time in seconds (1 hour)
     path: '/', // Path for the cookie
     sameSite: 'none', 
   }));

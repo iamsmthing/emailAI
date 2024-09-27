@@ -241,10 +241,11 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { AlertCircle } from 'lucide-react';
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
-import { div } from 'framer-motion/client';
-import { Spinner } from '@chakra-ui/react';
+
 
 const InboxComponent: React.FC = () => {
+  const token = Cookies.get('access_token_g');
+  const token_ms = Cookies.get('access_token_ms');
   const [emails, setEmails] = useState<Record<string, any[]>>({});
   const [expandedAuthors, setExpandedAuthors] = useState<{ [key: string]: boolean }>({});
 
@@ -271,8 +272,8 @@ const InboxComponent: React.FC = () => {
   }
 
   useEffect(() => {
-    const token = Cookies.get('access_token_g');
-    const token_ms = Cookies.get('access_token_ms');
+    // const token = Cookies.get('access_token_g');
+    // const token_ms = Cookies.get('access_token_ms');
 
     const fetchOutlookEmails = async (accessToken: string) => {
       const endpoint = 'https://graph.microsoft.com/v1.0/me/messages';
@@ -384,9 +385,9 @@ const InboxComponent: React.FC = () => {
     <div className="py-2 bg-gray-900 text-white">
       <div className="space-y-4 bg-gray-800 p-6 rounded-lg shadow-lg h-[90vh] overflow-y-auto">
         <div className="flex items-center space-x-2 text-2xl font-semibold">
-          <FaGoogle className="text-blue-400" />
-          <FaMicrosoft className="text-green-400" />
-          <h3>All Emails </h3>
+          {token && <FaGoogle className="text-blue-400" />}
+          {token_ms && <FaMicrosoft className="text-green-400" />}
+          <h3>Emails </h3>
         </div>
 
         {Object.keys(emails).length > 0 ? (

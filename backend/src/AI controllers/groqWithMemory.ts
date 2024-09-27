@@ -26,7 +26,7 @@ export async function getReplyFromllama(userQuery: string, conversationHistory: 
     model: model,
   });
 
-  const systemPrompt = 'You are a friendly conversational assistant named Zyra.You have memory that makes you capable of remembering things discussed while conversation.';
+  const systemPrompt = `You are a friendly conversational assistant named Zyra.You have memory that makes you capable of remembering things discussed while conversation.Always remember that my name is Shivam.For better conversation ,you can access today's date and time as ${new Date()}`;
   const conversationalMemoryLength = 20;
 
   // Initialize BufferWindowMemory and populate it with the previous conversation history

@@ -287,7 +287,6 @@ const EmailSummaryDashboard: React.FC = () => {
     { id: 'dashboard', icon: <PieChart className="w-5 h-5" />, label: 'Dashboard' },
     { id: 'assistant', icon: <MicIcon className="w-5 h-5" />, label: 'Voice AI' },
     { id: 'inbox', icon: <Inbox className="w-5 h-5" />, label: 'Inbox' },
-    { id: 'calendar', icon: <Calendar className="w-5 h-5" />, label: 'Calendar' },
     { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Settings' },
     { id: 'profile', icon: <UserIcon className="w-5 h-5" />, label: 'Profile' },
   ];
@@ -300,8 +299,6 @@ const EmailSummaryDashboard: React.FC = () => {
         return <VoiceToText />;  
       case 'inbox':
         return <InboxComponent />;
-      case 'calendar':
-        return <CalendarComponent />;
       case 'settings':
         return <SettingsComponent />;
       case 'profile':
@@ -422,14 +419,6 @@ const AnalyticsCard: React.FC<{ title: string; value: string; icon: React.ReactN
   );
 };
 
-const CalendarComponent: React.FC = () => {
-  return (
-    <div className="bg-gray-800 rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-semibold mb-4 text-gray-200">Calendar</h3>
-      <p className="text-gray-400">Calendar integration coming soon...</p>
-    </div>
-  );
-};
 
 export const SettingsComponent: React.FC = () => {
   const token_ms = Cookies.get('access_token_ms');
