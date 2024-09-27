@@ -5,7 +5,7 @@ const token_g = Cookies.get('access_token_g');
 const token_ms = Cookies.get('access_token_ms');
 
 
-const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string) => {
+const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string, maxmails?: number) => {
   const accessToken = token_ms;
   var filterString: string = ``;
   if (fromFilter) {
@@ -27,10 +27,13 @@ const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string,
     if (filterString != '') {
       o_url += `?filter=${filterString}`;
     }
-    console.log('filter string Outlook',o_url)
+    if(maxmails){
+      o_url += `&maxmails=${maxmails}`
+    }
+    //console.log('filter string Outlook',o_url)
     const response = await axios.post((o_url), {}, {
       headers: {
-        Authorization: `Bearer ${accessToken}`, // Send accessToken in the header
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
     });
@@ -43,7 +46,7 @@ const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string,
 };
 
 
-const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string) => {
+const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string, maxmails?: number) => {
   const accessToken = token_g; // Replace with your actual access token
   let query = '';
 
@@ -73,6 +76,9 @@ const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, 
   if (query != '') {
     g_url += `?filter=${query}`
   }
+  if(maxmails){
+    g_url += `&maxmails=${maxmails}`
+  }
   try {
     const response = await axios.post((g_url), {}, {
       headers: {
@@ -96,11 +102,13 @@ export const fetchEmails = async ({
   toDateFilter,
   fromFilter,
   containsFilter,
+  maxmails
 }: {
   fromDateFilter?: string;
   toDateFilter?: string;
   fromFilter?: string;
   containsFilter?: string;
+  maxmails?: number
 }) => {
   const token = Cookies.get('access_token_g');
   const token_ms = Cookies.get('access_token_ms');
@@ -110,7 +118,7 @@ export const fetchEmails = async ({
 
   try {
     if (token) {
-      gmailEmails = await fetchGmailEmails(fromDateFilter, toDateFilter, fromFilter, containsFilter);
+      gmailEmails = await fetchGmailEmails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails);
     }
   } catch (error) {
     console.error('Error fetching Gmail emails:', error);
@@ -118,7 +126,7 @@ export const fetchEmails = async ({
 
   try {
     if (token_ms) {
-      outlookEmails = await fetchOutlookMails(fromDateFilter, toDateFilter, fromFilter, containsFilter);
+      outlookEmails = await fetchOutlookMails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails);
     }
   } catch (error) {
     console.error('Error fetching Outlook emails:', error);

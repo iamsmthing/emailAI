@@ -51,6 +51,9 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 export const fetchGmailEmails = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
   const filter = req.query.filter;
+  const maxmails = req.query.maxmails;
+  const fetchAllinFiltered = req.query.fetchAll;
+  console.log(maxmails);
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
