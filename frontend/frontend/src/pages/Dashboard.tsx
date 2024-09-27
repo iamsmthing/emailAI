@@ -309,7 +309,8 @@ const EmailSummaryDashboard: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
+    Cookies.remove('access_token_g', { path: '/' });
+    Cookies.remove('connect.sid', { path: '/' });
     navigate('/');
   };
 
