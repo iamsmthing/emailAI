@@ -13,7 +13,7 @@ const dateAWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
 
 const fromDateFilter = dateAWeekAgo.toISOString().split('T')[0];
 const toDateFilter = currentDate.toISOString().split('T')[0];
-var emails =await fetchEmails({fromDateFilter, toDateFilter,maxmails:50});
+var emails =await fetchEmails({fromDateFilter,toDateFilter,maxmails:500,fetchAll:true});
 const emailArray = [...Object.values(emails)].flat();
 console.log("emails on dashboard", emailArray);
 
@@ -23,6 +23,7 @@ const freqArray: any[] = [0,0,0,0,0,0,0];
 
 emailArray.forEach((email: any) => {
   freqArray[new Date(email.date).getDay()]++;
+  
 });
 console.log("emptyArrrr",freqArray)
 

@@ -46,7 +46,8 @@ const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string,
 };
 
 
-const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string, maxmails?: number) => {
+const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string,
+   containsFilter?: string, maxmails?: number,fetchAll?: boolean) => {
   const accessToken = token_g; // Replace with your actual access token
   let query = '';
 
@@ -74,11 +75,20 @@ const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, 
   query = query.trim();
   let g_url = 'http://localhost:4000/auth/fetchGmailEmails';
   if (query != '') {
-    g_url += `?filter=${query}`
+    g_url += `?filter=${query}`;
+    if(maxmails){
+      g_url += `&maxmails=${maxmails}`;
+    }
+  } else if(maxmails){
+    g_url += `?maxmails=${maxmails}`;
   }
-  if(maxmails){
-    g_url += `&maxmails=${maxmails}`
+  
+  if(maxmails || query){
+    g_url += `&fetchAll=${fetchAll?"true":"false"}`
+  } else if(fetchAll){
+    g_url += `?fetchAll=${fetchAll?"true":"false"}`
   }
+
   try {
     const response = await axios.post((g_url), {}, {
       headers: {
@@ -102,13 +112,15 @@ export const fetchEmails = async ({
   toDateFilter,
   fromFilter,
   containsFilter,
-  maxmails
+  maxmails,
+  fetchAll
 }: {
   fromDateFilter?: string;
   toDateFilter?: string;
   fromFilter?: string;
   containsFilter?: string;
-  maxmails?: number
+  maxmails?: number;
+  fetchAll?: boolean
 }) => {
   const token = Cookies.get('access_token_g');
   const token_ms = Cookies.get('access_token_ms');
@@ -118,7 +130,7 @@ export const fetchEmails = async ({
 
   try {
     if (token) {
-      gmailEmails = await fetchGmailEmails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails);
+      gmailEmails = await fetchGmailEmails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails,fetchAll);
     }
   } catch (error) {
     console.error('Error fetching Gmail emails:', error);
