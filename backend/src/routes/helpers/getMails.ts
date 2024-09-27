@@ -10,8 +10,8 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 
   let endpoint = 'https://graph.microsoft.com/v1.0/me/messages';
   if (filter) {
-    console.log(filter)
-    endpoint += `?$filter=${filter}`;
+    console.log(endpoint)
+    endpoint += `?${filter}`;
   }
   try {
     const response = await axios.get(endpoint, {

@@ -11,21 +11,23 @@ const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string,
   if (fromFilter) {
     filterString += `sender/emailAddress/address eq '${fromFilter}' or `;
   }
-  if (containsFilter) {
-    filterString += `contains(subject, '${containsFilter}') or contains(body/preview, '${containsFilter}') or `;
-  }
+  
   if (fromDateFilter) {
     filterString += `receivedDateTime ge ${fromDateFilter} or `;
   }
   if (toDateFilter) {
     filterString += `receivedDateTime le ${toDateFilter} or `;
   }
-  filterString = filterString.replace(/ or $/, ''); // remove trailing ' or '
+  filterString = `$filter=${filterString.replace(/ or $/, '')}`; // remove trailing ' or '
+  if (containsFilter) {
+    filterString = `$search="${containsFilter}"`;
+  }
   try {
     let o_url = 'http://localhost:4000/auth/fetchOutlookMails';
     if (filterString != '') {
       o_url += `?filter=${filterString}`;
     }
+    console.log('filter string Outlook',o_url)
     const response = await axios.post((o_url), {}, {
       headers: {
         Authorization: `Bearer ${accessToken}`, // Send accessToken in the header

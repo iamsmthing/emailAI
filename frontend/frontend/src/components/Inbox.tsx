@@ -283,7 +283,7 @@ const InboxComponent: React.FC = () => {
   useEffect(() => {
     async function fetchAndSetEmails() {
       try {
-        const combinedEmails = await fetchEmails({});
+        const combinedEmails = await fetchEmails({containsFilter:"Microsoft"});
         setEmails(combinedEmails);
       } catch (error) {
         console.error(error);
