@@ -5,11 +5,13 @@ import passport from 'passport';
 const router = Router();
 import axios from 'axios';
 import cookie from 'cookie';
+import { fetchGmailEmails, fetchOutlookMails } from './helpers/getMails';
 
 // router.get('/google', googleAuth);
 // router.get('/google/callback', googleCallback);
 
-
+router.post('/fetchOutlookMails', fetchOutlookMails);
+router.post('/fetchGmailEmails', fetchGmailEmails);
 
 // Endpoint to get the OAuth URL and redirect
 router.get('/microsoft', (req, res) => {
