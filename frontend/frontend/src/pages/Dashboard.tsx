@@ -260,6 +260,7 @@ import { Mail, Calendar, PieChart, Settings, LogOut, Inbox,  UserIcon, MicIcon }
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import InboxComponent from '../components/Inbox';
 import VoiceToText from './VoiceToText';
+import GoogleUserInfo from '../components/Profile'
 
 const mockChartData = [
   { name: 'Mon', emails: 120 },
@@ -302,7 +303,7 @@ const EmailSummaryDashboard: React.FC = () => {
       case 'settings':
         return <SettingsComponent />;
       case 'profile':
-      return <ProfileComponent />;
+      return <GoogleUserInfo />;
       default:
         return <DashboardComponent />;
     }
@@ -465,14 +466,14 @@ export const SettingsComponent: React.FC = () => {
 };
 
 
-const ProfileComponent: React.FC = () => {
-  return (
-    <div className="bg-gray-800 rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-semibold mb-4 text-gray-200">Profile</h3>
-      <p className="text-gray-400">Profile integration coming soon...</p>
+// const ProfileComponent: React.FC = () => {
+//   return (
+//     <div className="bg-gray-800 rounded-lg shadow-md p-6">
+//       <h3 className="text-xl font-semibold mb-4 text-gray-200">Profile</h3>
+//       <p className="text-gray-400">Profile integration coming soon...</p>
       
-    </div>
-  );
-};
+//     </div>
+//   );
+// };
 
 export default EmailSummaryDashboard;
