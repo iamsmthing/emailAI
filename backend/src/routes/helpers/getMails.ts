@@ -3,13 +3,16 @@ import axios from 'axios';
 
 export const fetchOutlookMails = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]; // Extract token from the Authorization header
-
+  const filter = req.query.filter;
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
 
-  const endpoint = 'https://graph.microsoft.com/v1.0/me/messages';
-
+  let endpoint = 'https://graph.microsoft.com/v1.0/me/messages';
+  if (filter) {
+    console.log(filter)
+    endpoint += `?$filter=${filter}`;
+  }
   try {
     const response = await axios.get(endpoint, {
       headers: {
@@ -47,18 +50,18 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 
 export const fetchGmailEmails = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
-
+  const filter = req.query.filter;
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
-
+  console.log("filter",filter);
   try {
     // First request to get a list of messages
     const response = await axios.get('https://gmail.googleapis.com/gmail/v1/users/me/messages', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-      params: { maxResults: 10 },
+      params: { maxResults: 20,q:filter!=''?filter:'' },
     });
 
     const messages = response.data.messages;

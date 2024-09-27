@@ -260,6 +260,10 @@ import { Mail, Calendar, PieChart, Settings, LogOut, Inbox,  UserIcon, MicIcon }
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import InboxComponent from '../components/Inbox';
 import VoiceToText from './VoiceToText';
+import { fetchEmails } from '../util/helper';
+
+
+var emails =await fetchEmails({});
 
 const mockChartData = [
   { name: 'Mon', emails: 120 },
@@ -325,7 +329,7 @@ const EmailSummaryDashboard: React.FC = () => {
       >
         <div className="flex items-center mb-8">
           <Mail className="w-8 h-8 mr-2 text-purple-400" />
-          <h1 className="text-2xl font-bold">EmailAI</h1>
+          <h1 className="text-2xl font-bold">MailSense</h1>
         </div>
         <nav className="flex-1">
           {menuItems.map((item) => (
