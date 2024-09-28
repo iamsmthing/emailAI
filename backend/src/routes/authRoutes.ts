@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { googleAuth, googleCallback } from '../controllers/authController';
 import { google } from 'googleapis';
 import passport from 'passport';
@@ -6,6 +6,9 @@ const router = Router();
 import axios from 'axios';
 import cookie from 'cookie';
 import { fetchGmailEmails, fetchOutlookMails } from './helpers/getMails';
+import { SUMMARIZER_SYSTEM_PROMPT } from '../consts/prompt';
+import Groq from 'groq-sdk';
+import { GroqObject, MODEL} from '../GroqInit';
 
 // router.get('/google', googleAuth);
 // router.get('/google/callback', googleCallback);
@@ -179,4 +182,42 @@ router.get('/emails', async (req, res) => {
 
 router.get('/profile', )
 
+router.post('/summarize', async (req: Request, res: Response) => {
+  try {
+      const emails = req.body as Record<string, string>[];
+
+      // if (!emails || !Array.isArray(emails)) {
+      //     return res.status(400).json({ error: 'Invalid input format. "emails" should be an array.' });
+      // }
+
+      const summarizationPromises = emails.map(async (email) => {
+          const [emailSender] = Object.keys(email);
+          const emailContent = email[emailSender];
+
+          try {
+              const response = await GroqObject.chat.completions.create({
+                  model: MODEL,
+                  messages: [
+                      {
+                          role: 'system',
+                          content: `${SUMMARIZER_SYSTEM_PROMPT} <email> ${emailContent} </email>`
+                      }
+                  ]
+              });
+              return { [emailSender]: response.choices[0].message.content };
+          } catch (err) {
+              console.error(`Error processing email from ${emailSender}:`, err);
+              return { [emailSender]: 'Error generating summary.' };
+          }
+      });
+
+      const results = await Promise.all(summarizationPromises);
+      const secondResponse = Object.assign({}, ...results);
+
+      res.json({ secondResponse });
+  } catch (error) {
+      console.error('Error in /summarize endpoint:', error);
+      res.status(500).json({ error: 'Error generating summaries.' });
+  }
+});
 export default router;
