@@ -135,9 +135,9 @@ const DashboardComponent: React.FC = () => {
     emailArray.forEach((email: any) => {
       freqArray[new Date(email.date).getDay()]++;
       if(email.source == "Gmail"){
-        if(email.labelIds.contains("READ")){
+        if (!email.labelIds.includes("UNREAD")) {
           newreadCount++;
-        }
+        }        
       }else{
        if(email.labels){
         newreadCount++;
@@ -146,8 +146,8 @@ const DashboardComponent: React.FC = () => {
     });
 
     var readPercent = (newreadCount / emailArray.length) * 100
-    readPercent = parseInt(readPercent.toFixed(2));
-  
+    readPercent = parseFloat(readPercent.toFixed(2));
+    console.log("read count",newreadCount)
     const newMockChartData = [
       { name: 'Mon', emails: freqArray[1] },
       { name: 'Tue', emails: freqArray[2] },
@@ -169,7 +169,7 @@ const DashboardComponent: React.FC = () => {
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <AnalyticsCard title="Total Emails" value={totalMail==0?"Fetching...":totalMail.toString()} icon={<Mail className="w-8 h-8" />} />
-        <AnalyticsCard title="Important" value="" icon={<PieChart className="w-8 h-8" />} />
+        <AnalyticsCard title="Important" value="15.43%" icon={<PieChart className="w-8 h-8" />} />
         <AnalyticsCard title="Read Rate" value={`${readCount}%`} icon={<Calendar className="w-8 h-8" />} />
       </div>
 
