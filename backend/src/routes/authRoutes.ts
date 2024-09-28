@@ -202,9 +202,10 @@ router.post('/draftSummarize', async (req:Request, res:Response)=>{
     //{emailContent, string}
     const emails = req.body as Record<string, string>;
     const response = await summarize(emails.emailContent);
-    return{"emailContent": response}
+    res.json({"emailContent":response});
+    //return{"emailContent": response}
   } catch (error) {
-    
+    console.log(error);
   }
 });
 

@@ -1,6 +1,6 @@
 // components/ShowMailModal.tsx
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 interface ShowMailModalProps {
   isOpen: boolean;
@@ -12,6 +12,8 @@ const ShowMailModal: React.FC<ShowMailModalProps> = ({ isOpen, onClose, email })
   const [htmlContent, setHtmlContent] = useState('');
 
   useEffect(() => {
+    console.log(email)
+    setHtmlContent('');
     if (!email) return;
 
     let base64Data = email.parts?.[1]?.body?.data;
@@ -43,20 +45,26 @@ const ShowMailModal: React.FC<ShowMailModalProps> = ({ isOpen, onClose, email })
         <DialogHeader>
           <DialogTitle>{email.subject}</DialogTitle>
         </DialogHeader>
+        <DialogDescription>
+        
         <div className="">
           <div
             style={{
-              maxHeight: '400px', // Adjust height as needed
+              height: '60vh', // Adjust height as needed
               overflowY: 'auto',   // Enable vertical scrolling
               padding: '1rem',
               border: '1px solid #ccc', // Optional styling for better visibility
               borderRadius: '5px',
-              maxWidth:'75%'
+              maxWidth:'100%'
             }}
           >
-            <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+            {email.source=='Outlook'?<div dangerouslySetInnerHTML={{ __html: email.parts }} />:
+            
+           email.parts === undefined ?  <div dangerouslySetInnerHTML={{ __html: email.snippet }} /> : <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+            }
           </div>
         </div>
+      </DialogDescription>
       </DialogContent>
     </Dialog>
   );

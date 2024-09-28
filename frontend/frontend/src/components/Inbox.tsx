@@ -4,9 +4,26 @@ import { FaSync } from "react-icons/fa";
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
 import { convertBase64ToString, fetchEmails } from '../util/helper';
 import ShowMailModal from './showMailModal';
+import { CgDanger } from "react-icons/cg";
+import { Button } from './ui/button';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { useToast } from "@/hooks/use-toast"
+
+interface Email {
+  author: string;
+  id: string;
+  threadId: string;
+  subject: string;
+  snippet: string;
+  date: number;
+  labelIds: string[];
+  source: string;
+}
 
 
 const InboxComponent: React.FC = () => {
+  const { toast } = useToast()
   const [emails, setEmails] = useState<Record<string, any[]>>({});
   const [expandedAuthors, setExpandedAuthors] = useState<{ [key: string]: boolean }>({});
   const [synced, setSynced] = useState(false);
@@ -16,17 +33,88 @@ const InboxComponent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   // Function to be called when button is clicked
+  const cookieValue = Cookies.get('access_token_g')!;
   const handleButtonClick = () => {
     setLoading(true)
     setEmails({})
     setSynced((prev) => !prev); // Toggle state to trigger useEffect
   };
 
+
+
   const showEmailContent = (email: any) => {
     setSelectedEmail(email); // Set the email that was clicked
     setIsModalOpen(true);    // Open the modal
   };
 
+
+  async function createDraftEmail(
+    accessToken: string, 
+    recipientName: string, 
+    subject: string, 
+    threadId:string,
+    body: string, 
+  ): Promise<string> {
+    console.log(recipientName, subject, body);
+  
+    try {
+      const emailContent = `To: ${recipientName}\r\nSubject: ${subject}\r\n\r\n${body}`;
+      // const raw = Buffer.from(emailContent)
+      //       .toString('base64')
+      //       .replace(/\+/g, '-')
+      //       .replace(/\//g, '_')
+      //       .replace(/=+$/, '');
+      const raw = btoa(unescape(encodeURIComponent(emailContent)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+      // Define the draft data to be sent
+      const draftData = {
+        message: {
+          raw:raw,
+          threadId:threadId  // If part of a thread, assign threadId
+        },
+      };
+  
+      // Send request to Gmail API using Axios
+      const res = await axios.post(
+        'https://gmail.googleapis.com/gmail/v1/users/me/drafts', 
+        draftData, 
+        {
+          headers: { Authorization: `Bearer ${accessToken}` }  // Pass the OAuth token in the header
+        }
+      );
+  
+      return JSON.stringify({ draftId: res.data.id, status: `Draft created successfully for ${recipientName}` });
+    } catch (error: any) {
+      console.error("Error creating draft email:", error.response?.data || error.message);
+      return JSON.stringify({ error: "Failed to create draft email" });
+    }
+  }
+
+  const createDraft=async (event:any,email:any)=>{
+    event.stopPropagation();
+    console.log(email)
+    
+
+    const requestBody={
+      emailContent:email.snippet
+    }
+     let res = await fetch(
+      'http://localhost:4000/auth/draftSummarize',
+       { method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+         });
+      res = await res.json();
+
+    const createDraft=await createDraftEmail(cookieValue,email.author,email.subject,email.threadId,res?.emailContent)
+    toast({
+      title: "Draft created in gmail",
+    })
+    console.log(createDraft);
+  }
 
   function convertTimestampToDate(timestamp: number): string {
     const date = new Date(timestamp);
@@ -113,7 +201,7 @@ const InboxComponent: React.FC = () => {
   // function checkReadImp(arr: string[]): boolean {
   //   return arr.includes("IMPORTANT");
   // }
-
+  
   useEffect(() => {
     async function fetchAndSetEmails() {
       try {
@@ -124,6 +212,7 @@ const InboxComponent: React.FC = () => {
         // const combinedEmails = await fetchEmails({fromDateFilter,toDateFilter,maxmails:200,fetchAll:true});
         const combinedEmails: any = await fetchEmails({});
         setEmails(combinedEmails);
+        console.log("final mails:",emails)
 
         Object.keys(combinedEmails).map(async (author) => {
           const responseSummary = await getEmailSummary(combinedEmails[author])
@@ -131,8 +220,7 @@ const InboxComponent: React.FC = () => {
             ...prevState,
             [author]: responseSummary, // Update with new values while preserving the old ones
           }));
-          console.log("summarizedEmails")
-          console.log(emailSummary)
+          
         })
 
       } catch (error) {
@@ -187,38 +275,52 @@ const InboxComponent: React.FC = () => {
               >
                 <div className="flex justify-between items-center mb-2">
                   <div>
+                    <div className='flex flex-row justify-between'>
                     <div className="flex row gap-2 items-center">
                       {emails[author][0].source === 'Gmail'
                         ? <FaGoogle className="text-blue-400" />
                         : <FaMicrosoft className="text-green-400" />
                       }
 
-                      <h4 className="font-semibold text-lg text-white">{author}</h4></div>
+                      <h4 className="font-semibold text-lg text-white">{author}</h4>
+                      
+                      </div>
+                     
+                    </div>
+                    
                     <div className="flex items-center space-x-4">
-                      <div>
+                    
+                      <div className='flex flex-col'>
+                       
+                        <p>{emailSummary[author]}</p>
+                        <div className='flex flex-row justify-start gap-4 mt-2'>
                         <p className="text-sm text-gray-400">
                           {emails[author].length} email(s)
                         </p>
-                      </div>
-                      <div>
-                        <h2>Summary</h2>
-                        <hr style={{ border: '1px solid #ccc', margin: '10px 0' }} />
-                        <p>{emailSummary[author]}</p>
-                      </div>
-
-                      <div>
+                       
                         <p className="text-sm text-gray-400">
                           {convertTimestampToDate(emails[author][0].date)}
                         </p>
+                      
                       </div>
+                      </div>
+
+                      {/* <div>
+                        <p className="text-sm text-gray-400">
+                          {convertTimestampToDate(emails[author][0].date)}
+                        </p>
+                      </div> */}
                     </div>
                   </div>
+                  <div className='flex flex-col gap-6 items-center'>
+                  {emails[author][0].sensitive && <CgDanger className='text-red-400 text-xl'/>}
                   <button
                     onClick={() => toggleExpandEmail(author)}
                     className="text-blue-400 font-semibold"
                   >
                     {expandedAuthors[author] ? 'Collapse' : 'Expand'}
                   </button>
+                  </div>
                 </div>
 
                 {/* Emails from this author */}
@@ -242,7 +344,9 @@ const InboxComponent: React.FC = () => {
                         )}
                         <div className="flex-1">
                           {/* Display read/unread status for Gmail */}
-                          {email.source === 'Gmail' && (
+                          {(
+                            <div className='flex flex-row content-center justify-between'>
+
                             <p
                               className={`text-sm font-semibold ${checkReadStatus(email.labelIds) === 'UNREAD'
                                 ? 'text-red-400'
@@ -251,6 +355,9 @@ const InboxComponent: React.FC = () => {
                             >
                               {capitalizeFirstLetter(checkReadStatus(email.labelIds))}
                             </p>
+                            <Button variant="default" onClick={(e:any)=>createDraft(e,email)}>Create Draft</Button>
+
+                            </div>
                           )}
                           <h5 className="font-semibold text-md">{email.subject}</h5>
                           <p className="text-sm text-gray-300">{email.snippet}</p>

@@ -5,6 +5,7 @@ import './index.css';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AuthGuard from './components/AuthGuard';
+import { Toaster } from './components/ui/toaster';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -14,6 +15,7 @@ ReactDOM.render(
         <Route path="/dashboard" element={
             <AuthGuard>
               <Dashboard />
+              <Toaster />
             </AuthGuard>
           } />
         {/* You can add more routes like dashboard */}

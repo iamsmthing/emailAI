@@ -11,6 +11,9 @@ import ProfileSettingsPage from '../components/ProfileSettingPage';
 
 
 
+
+
+
 const msLogin = () => {
   window.location.href = 'http://localhost:4000/auth/microsoft';
 };
@@ -242,7 +245,7 @@ export const SettingsComponent: React.FC = () => {
       <div className="bg-gray-800 rounded-lg shadow-md p-6">
         <h3 className="text-xl font-semibold mb-4 text-violet-600">Permissions</h3>
         <div className="flex items-center justify-between mb-4">
-          <label htmlFor="default-checkbox" className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          <label htmlFor="default-checkbox" className="text-lg font-medium  dark:text-gray-100">
             Summarize sensitive emails
           </label>
           <input
