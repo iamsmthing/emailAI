@@ -5,6 +5,20 @@ import { fetchEmails } from '../util/helper';
 import ShowMailModal from './showMailModal';
 import { MdOutlineDrafts } from "react-icons/md";
 import { Button } from './ui/button';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+
+interface Email {
+  author: string;
+  id: string;
+  threadId: string;
+  subject: string;
+  snippet: string;
+  date: number;
+  labelIds: string[];
+  source: string;
+}
+
 
 const InboxComponent: React.FC = () => {
   const [emails, setEmails] = useState<Record<string, any[]>>({});
@@ -15,19 +29,84 @@ const InboxComponent: React.FC = () => {
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [selectedEmail, setSelectedEmail] = useState<any>(null);
   // Function to be called when button is clicked
+  const cookieValue = Cookies.get('access_token_g')!;
   const handleButtonClick = () => {
     setLoading(true)
     setEmails({})
     setSynced((prev) => !prev); // Toggle state to trigger useEffect
   };
 
+
+
   const showEmailContent = (email: any) => {
     setSelectedEmail(email); // Set the email that was clicked
     setIsModalOpen(true);    // Open the modal
   };
 
-  const createDraft=(event:any)=>{
+
+  async function createDraftEmail(
+    accessToken: string, 
+    recipientName: string, 
+    subject: string, 
+    threadId:string,
+    body: string, 
+  ): Promise<string> {
+    console.log(recipientName, subject, body);
+  
+    try {
+      const emailContent = `To: ${recipientName}\r\nSubject: ${subject}\r\n\r\n${body}`;
+      // const raw = Buffer.from(emailContent)
+      //       .toString('base64')
+      //       .replace(/\+/g, '-')
+      //       .replace(/\//g, '_')
+      //       .replace(/=+$/, '');
+      const raw = btoa(unescape(encodeURIComponent(emailContent)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+      // Define the draft data to be sent
+      const draftData = {
+        message: {
+          raw:raw,
+          threadId:threadId  // If part of a thread, assign threadId
+        },
+      };
+  
+      // Send request to Gmail API using Axios
+      const res = await axios.post(
+        'https://gmail.googleapis.com/gmail/v1/users/me/drafts', 
+        draftData, 
+        {
+          headers: { Authorization: `Bearer ${accessToken}` }  // Pass the OAuth token in the header
+        }
+      );
+  
+      return JSON.stringify({ draftId: res.data.id, status: `Draft created successfully for ${recipientName}` });
+    } catch (error: any) {
+      console.error("Error creating draft email:", error.response?.data || error.message);
+      return JSON.stringify({ error: "Failed to create draft email" });
+    }
+  }
+
+  const createDraft=async (event:any,email:any)=>{
     event.stopPropagation();
+    console.log(email)
+    
+
+    const requestBody={
+      emailContent:email.snippet
+    }
+     let res = await fetch(
+      'http://localhost:4000/auth/draftSummarize',
+       { method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+         });
+      res = await res.json();
+
+    const createDraft=await createDraftEmail(cookieValue,email.author,email.subject,email.threadId,res?.emailContent,)
+    console.log(createDraft);
   }
 
   function convertTimestampToDate(timestamp: number): string {
@@ -51,10 +130,15 @@ const InboxComponent: React.FC = () => {
   // function checkReadImp(arr: string[]): boolean {
   //   return arr.includes("IMPORTANT");
   // }
-
+  
   useEffect(() => {
     async function fetchAndSetEmails() {
       try {
+        // const currentDate = new Date();
+        // const dateAWeekAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+        // const fromDateFilter = encodeURIComponent(dateAWeekAgo.toISOString().split('T')[0]);
+        // const toDateFilter = encodeURIComponent(currentDate.toISOString().split('T')[0]);
+        // const combinedEmails = await fetchEmails({fromDateFilter,toDateFilter,maxmails:200,fetchAll:true});
         const combinedEmails = await fetchEmails({});
         setEmails(combinedEmails);
       } catch (error) {
@@ -62,7 +146,7 @@ const InboxComponent: React.FC = () => {
       }
     }
     fetchAndSetEmails();
-
+    console.log("Emails on Inbox",emails)
     const timeoutId = setTimeout(() => {
       setLoading(false);
     }, 5000); // 3 seconds
@@ -165,7 +249,7 @@ const InboxComponent: React.FC = () => {
                             >
                               {capitalizeFirstLetter(checkReadStatus(email.labelIds))}
                             </p>
-                            <Button variant="default" onClick={(e:any)=>createDraft(e)}>Create Draft</Button>
+                            <Button variant="default" onClick={(e:any)=>createDraft(e,email)}>Create Draft</Button>
 
                             </div>
                           )}
@@ -180,7 +264,7 @@ const InboxComponent: React.FC = () => {
               </div>
             ))
           ) :
-          loading ? (
+          (
             <div role="status" className="flex items-center justify-center h-[90%]">
               <svg
                 aria-hidden="true"
@@ -199,8 +283,6 @@ const InboxComponent: React.FC = () => {
                 />
               </svg>              
             </div>
-          ) : (
-            <span className="">Seems like filter yielded no results</span>
           )}
           {/* Modal for showing email content */}
         {selectedEmail && (

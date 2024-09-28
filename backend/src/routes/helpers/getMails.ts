@@ -6,7 +6,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
   const filter = req.query.filter;
   const fetchAll = req.query.fetchAll === 'true'; // Expect a 'true' or 'false' string
   const maxMails = parseInt(req.query.maxMails as string) || 100; // Default to 100 if not provided
-
+  // console.log(req.query);
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
@@ -15,6 +15,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
   if (filter) {
     endpoint += `?${filter}`;
   }
+
 
   let allEmails: any[] = [];
   let nextLink: string | null = endpoint;
@@ -33,7 +34,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 
       nextLink = response.data['@odata.nextLink'] || null; // Check if there's a next page
 
-      if (!fetchAll && allEmails.length >= maxMails) {
+      if ( allEmails.length >= maxMails) {
         allEmails = allEmails.slice(0, maxMails); // Limit to maxMails
         break;
       }
@@ -85,7 +86,7 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
     return res.status(400).json({ error: 'Access token is required' });
   }
 
-  console.log(req.query);
+  // console.log(req.query);
 
   try {
     // Function to fetch messages in batches
@@ -175,9 +176,12 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
         if (!acc[author]) {
           acc[author] = [];
         }
+        
 
         acc[author].push({
+          author,
           id: email.id,
+          threadId:email.threadId,
           subject: email.payload.headers.find((header: { name: string }) => header.name === 'Subject')?.value || 'No Subject',
           snippet: email.snippet || 'No Preview',
           date: Number(email.internalDate),
@@ -186,12 +190,13 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
           headers:email.payload.headers,
           parts:email.payload.parts
         });
+        
 
         return acc;
       }, {});
-
+      console.log(gmailEmailsGroupedByAuthor)
       return res.json(gmailEmailsGroupedByAuthor);
-    } else if(allMessages.length > 0){res.json(allMessages)}else{
+    } else if (allMessages.length > 0) { res.json(allMessages) } else {
       return res.status(404).json({ error: 'No emails found' });
     }
   } catch (error) {
