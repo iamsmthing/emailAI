@@ -169,7 +169,7 @@ router.get('/emails', async (req, res) => {
   
     try {
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-      const response = await gmail.users.messages.list({ userId: 'me' });
+      const response = await gmail.users.messages.list({ userId: 'me', q: `category:primary OR category:updates`, });
       
       // Fetch detailed email data if needed
       const emails = response.data.messages || [];
@@ -223,10 +223,30 @@ router.post('/emailsSummarize', async (req: Request, res: Response) => {
       const results = await Promise.all(summarizationPromises);
       const secondResponse = Object.assign({}, ...results);
 
-      res.json({ secondResponse });
+      res.json(secondResponse );
   } catch (error) {
       console.error('Error in /summarize endpoint:', error);
       res.status(500).json({ error: 'Error generating summaries.' });
   }
+});
+
+router.post('/classification', async(req,res) => {
+  const transformedData = req.body; 
+
+  try {
+    // Send POST request to the external classifier service
+    const response = await axios.post('https://classifier-7vaw.onrender.com/classify', transformedData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Send the received response data back to the frontend
+    res.json(response.data);
+  } catch (error:any) {
+    console.error('Error sending data to classifier service:', error.message);
+    res.status(500).json({ message: 'Error communicating with classifier service', error: error.message });
+  }
+
 });
 export default router;

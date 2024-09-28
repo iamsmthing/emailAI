@@ -6,7 +6,8 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
   const filter = req.query.filter;
   const fetchAll = req.query.fetchAll === 'true'; // Expect a 'true' or 'false' string
   const maxMails = parseInt(req.query.maxMails as string) || 100; // Default to 100 if not provided
-  // console.log(req.query);
+
+
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
@@ -21,8 +22,8 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
   let nextLink: string | null = endpoint;
 
   try {
-    while (nextLink && (fetchAll || allEmails.length < maxMails)) {
-      const response:any = await axios.get(nextLink, {
+    while (nextLink && (fetchAll || (!fetchAll && allEmails.length < maxMails))) {
+      const response: any = await axios.get(nextLink, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -34,11 +35,15 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 
       nextLink = response.data['@odata.nextLink'] || null; // Check if there's a next page
 
-      if ( allEmails.length >= maxMails) {
+      // If fetchAll is false and we have reached maxMails, stop fetching
+      if (allEmails.length >= maxMails) {
         allEmails = allEmails.slice(0, maxMails); // Limit to maxMails
         break;
       }
+      
+    
     }
+
 
     const outlookEmailsGroupedBySender = allEmails.reduce(
       (acc: Record<string, any[]>, email: any) => {
@@ -54,6 +59,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
           date: new Date(email.receivedDateTime).getTime(),
           source: 'Outlook',
           parts:email.body.content,
+          labels: email.isRead,
           labelIds:[email.isRead?'READ':'UNREAD']
           
         });
@@ -76,7 +82,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 export const fetchGmailEmails = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
   const filter = req.query.filter || '';
-  const maxmails = parseInt(req.query.maxmails?.toString() ?? "", 10) || 20; // maxmails default to 3000 if not provided
+  const maxmails = parseInt(req.query.maxmails?.toString() ?? "", 10) || 100; // maxmails default to 3000 if not provided
   const fetchAllinFiltered = req.query.fetchAll === 'true';
   let fetchedEmailsCount = 0;
   let nextPageToken: string | null = null; // Initialize as null

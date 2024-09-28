@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { motion } from 'framer-motion';
-import { Mail, Calendar, PieChart, Settings, LogOut, Inbox, UserIcon, MicIcon } from 'lucide-react';
+import { Mail, Calendar, PieChart, Settings, LogOut, Inbox, MicIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import InboxComponent from '../components/Inbox';
 import VoiceToText from './VoiceToText';
 import { fetchEmails } from '../util/helper';
-import GoogleUserInfo from '../components/Profile';
+import ProfileSettingsPage from '../components/ProfileSettingPage';
 
 
 
@@ -34,8 +34,8 @@ const EmailSummaryDashboard: React.FC = () => {
     { id: 'dashboard', icon: <PieChart className="w-5 h-5" />, label: 'Dashboard' },
     { id: 'assistant', icon: <MicIcon className="w-5 h-5" />, label: 'Voice AI' },
     { id: 'inbox', icon: <Inbox className="w-5 h-5" />, label: 'Inbox' },
-    { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Settings' },
-    { id: 'profile', icon: <UserIcon className="w-5 h-5" />, label: 'Profile' },
+    { id: 'profile settings', icon: <Settings className="w-5 h-5" />, label: 'Profile Settings' },
+    // { id: 'profile', icon: <UserIcon className="w-5 h-5" />, label: 'Profile' },
   ];
 
   const renderActiveComponent = () => {
@@ -46,10 +46,8 @@ const EmailSummaryDashboard: React.FC = () => {
         return <VoiceToText />;
       case 'inbox':
         return <InboxComponent />;
-      case 'settings':
-        return <SettingsComponent />;
-      case 'profile':
-        return <GoogleUserInfo />;
+      case 'profile settings':
+        return <ProfileSettingsPage />;
       default:
         return <DashboardComponent />;
     }
@@ -120,10 +118,12 @@ const EmailSummaryDashboard: React.FC = () => {
 const DashboardComponent: React.FC = () => {
   const currentDate = new Date();
   const dateAWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fromDateFilter = encodeURIComponent(dateAWeekAgo.toISOString().split('T')[0]);
+  const toDateFilter = encodeURIComponent(currentDate.toISOString().split('T')[0]);
   const [totalMail, setTotalMail] = useState(0);
+  const [readCount,setReadCount] = useState(0);
   const [mockChartData, setMockChartData] = useState<any>([]);
-  const fromDateFilter = dateAWeekAgo.toISOString().split('T')[0];
-  const toDateFilter = currentDate.toISOString().split('T')[0];
+  
 
   useEffect(() => {  
     var fn=async () => {
@@ -132,13 +132,24 @@ const DashboardComponent: React.FC = () => {
       const emailArray = [...Object.values(emails)].flat();
   
       const newTotalMail = emailArray.length
+      var newreadCount=0;
   
     const freqArray: any[] = [0, 0, 0, 0, 0, 0, 0];
-  
     emailArray.forEach((email: any) => {
       freqArray[new Date(email.date).getDay()]++;
-  
+      if(email.source == "Gmail"){
+        if(email.labelIds.contains("READ")){
+          newreadCount++;
+        }
+      }else{
+       if(email.labels){
+        newreadCount++;
+       }
+      }
     });
+
+    var readPercent = (newreadCount / emailArray.length) * 100
+    readPercent = parseInt(readPercent.toFixed(2));
   
     const newMockChartData = [
       { name: 'Mon', emails: freqArray[1] },
@@ -152,6 +163,7 @@ const DashboardComponent: React.FC = () => {
   
     setTotalMail(newTotalMail);
     setMockChartData(newMockChartData);
+    setReadCount(readPercent);
     };
     fn();
   }, []);
@@ -160,8 +172,8 @@ const DashboardComponent: React.FC = () => {
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <AnalyticsCard title="Total Emails" value={totalMail==0?"Fetching...":totalMail.toString()} icon={<Mail className="w-8 h-8" />} />
-        <AnalyticsCard title="Categorized" value="89%" icon={<PieChart className="w-8 h-8" />} />
-        <AnalyticsCard title="Response Rate" value="76%" icon={<Calendar className="w-8 h-8" />} />
+        <AnalyticsCard title="Important" value="" icon={<PieChart className="w-8 h-8" />} />
+        <AnalyticsCard title="Read Rate" value={`${readCount}%`} icon={<Calendar className="w-8 h-8" />} />
       </div>
 
       <motion.div

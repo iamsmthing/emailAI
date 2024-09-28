@@ -4,6 +4,35 @@ import axios from 'axios';
 const token_g = Cookies.get('access_token_g');
 const token_ms = Cookies.get('access_token_ms');
 
+// Define the structure of each email item
+interface EmailItem {
+  id: string;
+  subject: string;
+  snippet: string;
+  date: number;
+  labelIds: string[];
+  source: string;
+}
+
+export const convertBase64ToString = (base64Data: string)=>{
+  if (base64Data) {
+    try {
+      // Fix for URL-safe Base64 (replace `-` with `+` and `_` with `/`)
+      base64Data = base64Data.replace(/-/g, '+').replace(/_/g, '/');
+
+      // Add padding if necessary
+      while (base64Data.length % 4 !== 0) {
+        base64Data += '=';
+      }
+
+      // Decode the Base64 string using `atob`
+      const decoded = atob(base64Data);
+      return decoded;
+    } catch (error) {
+      console.error("Error decoding Base64 data:", error);
+    }
+  }
+}
 
 const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string, maxmails?: number,fetchAll?: boolean) => {
   const accessToken = token_ms;
@@ -153,6 +182,67 @@ export const fetchEmails = async ({
     console.error('Error fetching Outlook emails:', error);
   }
 
+      // Combine the Gmail and Outlook emails into one object
+      const emailObj: Record<string, EmailItem[]> = {
+        ...gmailEmails,
+        ...outlookEmails
+      };
+    
+      // const emailObj = {...gmailEmails, ...outlookEmails}
+      // Transforming the object into the required format
+      // Transform the object into the required format
+      const transformedData = Object.values(emailObj).flat().map((item: EmailItem) => ({
+        [item.id]: item.snippet
+      }));
+    
+      // Set the transformed data in state (if needed)
+      // setTransformedData(transformedData);
+      // Send transformed data to the backend and get the classification response
+      const classificationResponse = await postTransformedData(transformedData);
+    
+      if (classificationResponse) {
+        console.log('Classification Response:', classificationResponse);
+
+        Object.keys(emailObj).forEach(sender => {
+          emailObj[sender] = emailObj[sender].map(email => {
+            // Add the `sensitive` field based on the ID mapping
+            return {
+              ...email,
+              sensitive: classificationResponse[email.id] || false
+            };
+          });
+        });
+
+        console.log("Updated Email Obj : ", emailObj)
+
+      }
+
+
+
   // Combine both Gmail and Outlook emails grouped by author/sender
   return { ...gmailEmails, ...outlookEmails };
+};
+
+const postTransformedData = async (data: any) => {
+  try {
+    const response = await fetch('http://localhost:4000/auth/classification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send data to the backend');
+    }
+
+    // Get the JSON response from the backend
+    const result = await response.json();
+    console.log('Successfully sent data to the backend:', result);
+    return result;
+  } catch (error) {
+    console.error('Error sending data to backend:', error);
+    return null;
+  }
 };
