@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { FaSync } from "react-icons/fa";
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
-import { fetchEmails } from '../util/helper';
+import { convertBase64ToString, fetchEmails } from '../util/helper';
 import ShowMailModal from './showMailModal';
 
 
@@ -10,6 +11,7 @@ const InboxComponent: React.FC = () => {
   const [expandedAuthors, setExpandedAuthors] = useState<{ [key: string]: boolean }>({});
   const [synced, setSynced] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [emailSummary, setEmailSummary] = useState<Record<string, string>>({});
    // State for modal
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [selectedEmail, setSelectedEmail] = useState<any>(null);
@@ -35,6 +37,56 @@ const InboxComponent: React.FC = () => {
     return `${day} ${month}, ${year}`;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
+  async function getEmailSummary(allEmails:[{}]){
+    try {
+      console.log("FROM GET EMAILS")
+      console.log(allEmails)
+      let emailString = "";
+      let fromEmail = "";
+      allEmails.forEach(async emails => {
+        if(emails.source === "Gmail"){
+          
+          const fromHeader = emails.headers.find(header => header.name.toLowerCase() === "from");
+          let isGmailDotCom = false;
+          if(fromHeader){
+            isGmailDotCom = fromHeader.value.toLowerCase().includes("@gmail.com");
+            fromEmail = fromHeader.value;
+          }
+    
+          if(emails.parts !== undefined && isGmailDotCom){
+            emails.parts.forEach(element => {
+              emailString += convertBase64ToString(element.body.data)
+            });
+          }
+          else{
+            emailString += emails.snippet;
+          }
+          
+          // const combinedData = emails.parts.map(email => convertBase64ToString(email.body.data)).join('');
+          // console.log(combinedData)
+          //fetch('http://localhost:3000/emailsSummarize')
+           
+        }
+        else{
+          emailString += "cannot fetch some emails email. "
+        }
+      });
+      const response = await fetch('http://localhost:4000/auth/emailsSummarize', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{ [fromEmail]: emailString }]), // Send emailString in the body
+    });
+    const data = await response.json();
+      return  data[`${fromEmail}`]
+    } catch (error:any) {
+      return "Got some error"
+    }
+
+
+  }
   function capitalizeFirstLetter(str: string) {
     if (str.length === 0) return str;
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -51,8 +103,19 @@ const InboxComponent: React.FC = () => {
   useEffect(() => {
     async function fetchAndSetEmails() {
       try {
-        const combinedEmails = await fetchEmails({});
+        const combinedEmails:any = await fetchEmails({});
         setEmails(combinedEmails);
+
+        Object.keys(combinedEmails).map(async (author)=>{
+          const responseSummary = await getEmailSummary(combinedEmails[author])
+          setEmailSummary((prevState) => ({
+            ...prevState,
+            [author]:responseSummary, // Update with new values while preserving the old ones
+          }));
+          console.log("summarizedEmails")
+          console.log(emailSummary)
+        })
+       
       } catch (error) {
         console.error(error);
       }
@@ -113,12 +176,22 @@ const InboxComponent: React.FC = () => {
 
                       <h4 className="font-semibold text-lg text-white">{author}</h4></div>
                     <div className="flex items-center space-x-4">
+                      <div>
                       <p className="text-sm text-gray-400">
                         {emails[author].length} email(s)
                       </p>
-                      <p className="text-sm text-gray-400">
+                      </div>
+                    <div>
+                        <h2>Summary</h2>
+                        <hr style={{ border: '1px solid #ccc', margin: '10px 0' }} />
+                        <p>{ emailSummary[author]}</p>
+                    </div>
+                    
+                    <div>
+                    <p className="text-sm text-gray-400">
                         {convertTimestampToDate(emails[author][0].date)}
                       </p>
+                    </div>
                     </div>
                   </div>
                   <button

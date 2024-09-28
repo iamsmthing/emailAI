@@ -4,6 +4,25 @@ import axios from 'axios';
 const token_g = Cookies.get('access_token_g');
 const token_ms = Cookies.get('access_token_ms');
 
+export const convertBase64ToString = (base64Data: string)=>{
+  if (base64Data) {
+    try {
+      // Fix for URL-safe Base64 (replace `-` with `+` and `_` with `/`)
+      base64Data = base64Data.replace(/-/g, '+').replace(/_/g, '/');
+
+      // Add padding if necessary
+      while (base64Data.length % 4 !== 0) {
+        base64Data += '=';
+      }
+
+      // Decode the Base64 string using `atob`
+      const decoded = atob(base64Data);
+      return decoded;
+    } catch (error) {
+      console.error("Error decoding Base64 data:", error);
+    }
+  }
+}
 
 const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string, maxmails?: number,fetchAll?: boolean) => {
   const accessToken = token_ms;
