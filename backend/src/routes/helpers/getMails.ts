@@ -41,6 +41,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 
     const outlookEmailsGroupedBySender = allEmails.reduce(
       (acc: Record<string, any[]>, email: any) => {
+        
         const sender = email.sender?.emailAddress?.name || 'Unknown Sender';
         if (!acc[sender]) {
           acc[sender] = [];
@@ -51,6 +52,9 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
           snippet: email.bodyPreview || 'No Preview',
           date: new Date(email.receivedDateTime).getTime(),
           source: 'Outlook',
+          parts:email.body.content,
+          labelIds:[email.isRead?'READ':'UNREAD']
+          
         });
         return acc;
       },
@@ -97,6 +101,7 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
       });
 
       nextPageToken = response.data.nextPageToken || null; // Set to null if there's no next page
+      console.log(response.data)
       return response.data.messages || [];
     };
 

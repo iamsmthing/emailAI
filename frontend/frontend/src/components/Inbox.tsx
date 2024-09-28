@@ -3,7 +3,8 @@ import { FaSync } from "react-icons/fa";
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
 import { fetchEmails } from '../util/helper';
 import ShowMailModal from './showMailModal';
-
+import { MdOutlineDrafts } from "react-icons/md";
+import { Button } from './ui/button';
 
 const InboxComponent: React.FC = () => {
   const [emails, setEmails] = useState<Record<string, any[]>>({});
@@ -25,6 +26,9 @@ const InboxComponent: React.FC = () => {
     setIsModalOpen(true);    // Open the modal
   };
 
+  const createDraft=(event:any)=>{
+    event.stopPropagation();
+  }
 
   function convertTimestampToDate(timestamp: number): string {
     const date = new Date(timestamp);
@@ -150,7 +154,9 @@ const InboxComponent: React.FC = () => {
                         )}
                         <div className="flex-1">
                           {/* Display read/unread status for Gmail */}
-                          {email.source === 'Gmail' && (
+                          {(
+                            <div className='flex flex-row content-center justify-between'>
+
                             <p
                               className={`text-sm font-semibold ${checkReadStatus(email.labelIds) === 'UNREAD'
                                 ? 'text-red-400'
@@ -159,6 +165,9 @@ const InboxComponent: React.FC = () => {
                             >
                               {capitalizeFirstLetter(checkReadStatus(email.labelIds))}
                             </p>
+                            <Button variant="default" onClick={(e:any)=>createDraft(e)}>Create Draft</Button>
+
+                            </div>
                           )}
                           <h5 className="font-semibold text-md">{email.subject}</h5>
                           <p className="text-sm text-gray-300">{email.snippet}</p>
