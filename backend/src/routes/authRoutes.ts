@@ -228,4 +228,24 @@ router.post('/emailsSummarize', async (req: Request, res: Response) => {
       res.status(500).json({ error: 'Error generating summaries.' });
   }
 });
+
+router.post('/classification', async(req,res) => {
+  const transformedData = req.body; 
+
+  try {
+    // Send POST request to the external classifier service
+    const response = await axios.post('https://classifier-7vaw.onrender.com/classify', transformedData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Send the received response data back to the frontend
+    res.json(response.data);
+  } catch (error:any) {
+    console.error('Error sending data to classifier service:', error.message);
+    res.status(500).json({ message: 'Error communicating with classifier service', error: error.message });
+  }
+
+});
 export default router;
