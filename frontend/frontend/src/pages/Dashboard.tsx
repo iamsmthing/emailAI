@@ -8,6 +8,7 @@ import InboxComponent from '../components/Inbox';
 import VoiceToText from './VoiceToText';
 import { fetchEmails } from '../util/helper';
 import GoogleUserInfo from '../components/Profile';
+import ProfileSettingsPage from '../components/ProfileSettingPage';
 
 
 
@@ -31,8 +32,8 @@ const EmailSummaryDashboard: React.FC = () => {
     { id: 'dashboard', icon: <PieChart className="w-5 h-5" />, label: 'Dashboard' },
     { id: 'assistant', icon: <MicIcon className="w-5 h-5" />, label: 'Voice AI' },
     { id: 'inbox', icon: <Inbox className="w-5 h-5" />, label: 'Inbox' },
-    { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Settings' },
-    { id: 'profile', icon: <UserIcon className="w-5 h-5" />, label: 'Profile' },
+    { id: 'profile settings', icon: <Settings className="w-5 h-5" />, label: 'Profile Settings' },
+    // { id: 'profile', icon: <UserIcon className="w-5 h-5" />, label: 'Profile' },
   ];
 
   const renderActiveComponent = () => {
@@ -43,10 +44,8 @@ const EmailSummaryDashboard: React.FC = () => {
         return <VoiceToText />;
       case 'inbox':
         return <InboxComponent />;
-      case 'settings':
-        return <SettingsComponent />;
-      case 'profile':
-        return <GoogleUserInfo />;
+      case 'profile settings':
+        return <ProfileSettingsPage />;
       default:
         return <DashboardComponent />;
     }
