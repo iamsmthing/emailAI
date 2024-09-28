@@ -75,7 +75,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 export const fetchGmailEmails = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
   const filter = req.query.filter || '';
-  const maxmails = parseInt(req.query.maxmails?.toString() ?? "", 10) || 20; // maxmails default to 3000 if not provided
+  const maxmails = parseInt(req.query.maxmails?.toString() ?? "", 10) || 100; // maxmails default to 3000 if not provided
   const fetchAllinFiltered = req.query.fetchAll === 'true';
   let fetchedEmailsCount = 0;
   let nextPageToken: string | null = null; // Initialize as null
@@ -165,6 +165,7 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
 
       // Group emails by author
       const gmailEmailsGroupedByAuthor = emailDetails.reduce((acc: Record<string, any[]>, email) => {
+      
         const fromHeader = email.payload.headers.find(
           (header: { name: string }) => header.name === 'From'
         );
@@ -181,6 +182,8 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
           date: Number(email.internalDate),
           labelIds: email.labelIds, // Read/unread status
           source: 'Gmail',
+          headers:email.payload.headers,
+          parts:email.payload.parts
         });
 
         return acc;
