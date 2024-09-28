@@ -268,9 +268,9 @@ const InboxComponent: React.FC = () => {
                 />
               </svg>              
             </div>
-          ) : (
+          )} : (
             <span className="">Seems like filter yielded no results</span>
-          )}
+          )
           {/* Modal for showing email content */}
         {selectedEmail && (
           <ShowMailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} email={selectedEmail} />
