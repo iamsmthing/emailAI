@@ -5,7 +5,7 @@ const token_g = Cookies.get('access_token_g');
 const token_ms = Cookies.get('access_token_ms');
 
 
-const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string, maxmails?: number) => {
+const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string, fromFilter?: string, containsFilter?: string, maxmails?: number,fetchAll?: boolean) => {
   const accessToken = token_ms;
   var filterString: string = ``;
   if (fromFilter) {
@@ -26,10 +26,19 @@ const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string,
     let o_url = 'http://localhost:4000/auth/fetchOutlookMails';
     if (filterString != '') {
       o_url += `?filter=${filterString}`;
+      if(maxmails){
+        o_url += `&maxmails=${maxmails}`;
+      }
+    } else if(maxmails){
+      o_url += `?maxmails=${maxmails}`;
     }
-    if(maxmails){
-      o_url += `&maxmails=${maxmails}`
+    
+    if(maxmails || filterString){
+      o_url += `&fetchAll=${fetchAll?"true":"false"}`
+    } else if(fetchAll){
+      o_url += `?fetchAll=${fetchAll?"true":"false"}`
     }
+  
     //console.log('filter string Outlook',o_url)
     const response = await axios.post((o_url), {}, {
       headers: {
