@@ -58,7 +58,10 @@ const ShowMailModal: React.FC<ShowMailModalProps> = ({ isOpen, onClose, email })
               maxWidth:'100%'
             }}
           >
-            {email.source=='Outlook'?<div dangerouslySetInnerHTML={{ __html: email.parts }} />:<div dangerouslySetInnerHTML={{ __html: htmlContent }} />}
+            {email.source=='Outlook'?<div dangerouslySetInnerHTML={{ __html: email.parts }} />:
+            
+           email.parts === undefined ?  <div dangerouslySetInnerHTML={{ __html: email.snippet }} /> : <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+            }
           </div>
         </div>
       </DialogDescription>

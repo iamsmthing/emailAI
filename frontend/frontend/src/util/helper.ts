@@ -135,7 +135,7 @@ const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, 
       },
     });
 
-    console.log('Gmail emails grouped by author:', response.data);
+    // console.log('Gmail emails grouped by author:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching Gmail emails:', error);
@@ -183,7 +183,7 @@ export const fetchEmails = async ({
   }
 
       // Combine the Gmail and Outlook emails into one object
-      const emailObj: Record<string, EmailItem[]> = {
+      let emailObj: Record<string, EmailItem[]> = {
         ...gmailEmails,
         ...outlookEmails
       };
@@ -220,7 +220,8 @@ export const fetchEmails = async ({
 
 
   // Combine both Gmail and Outlook emails grouped by author/sender
-  return { ...gmailEmails, ...outlookEmails };
+  // return { ...gmailEmails, ...outlookEmails };
+  return emailObj;
 };
 
 const postTransformedData = async (data: any) => {

@@ -4,10 +4,11 @@ import { FaSync } from "react-icons/fa";
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
 import { convertBase64ToString, fetchEmails } from '../util/helper';
 import ShowMailModal from './showMailModal';
-import { MdOutlineDrafts } from "react-icons/md";
+import { CgDanger } from "react-icons/cg";
 import { Button } from './ui/button';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useToast } from "@/hooks/use-toast"
 
 interface Email {
   author: string;
@@ -22,6 +23,7 @@ interface Email {
 
 
 const InboxComponent: React.FC = () => {
+  const { toast } = useToast()
   const [emails, setEmails] = useState<Record<string, any[]>>({});
   const [expandedAuthors, setExpandedAuthors] = useState<{ [key: string]: boolean }>({});
   const [synced, setSynced] = useState(false);
@@ -107,7 +109,10 @@ const InboxComponent: React.FC = () => {
          });
       res = await res.json();
 
-    const createDraft=await createDraftEmail(cookieValue,email.author,email.subject,email.threadId,res?.emailContent,)
+    const createDraft=await createDraftEmail(cookieValue,email.author,email.subject,email.threadId,res?.emailContent)
+    toast({
+      title: "Draft created in gmail",
+    })
     console.log(createDraft);
   }
 
@@ -207,6 +212,7 @@ const InboxComponent: React.FC = () => {
         // const combinedEmails = await fetchEmails({fromDateFilter,toDateFilter,maxmails:200,fetchAll:true});
         const combinedEmails: any = await fetchEmails({});
         setEmails(combinedEmails);
+        console.log("final mails:",emails)
 
         Object.keys(combinedEmails).map(async (author) => {
           const responseSummary = await getEmailSummary(combinedEmails[author])
@@ -214,8 +220,7 @@ const InboxComponent: React.FC = () => {
             ...prevState,
             [author]: responseSummary, // Update with new values while preserving the old ones
           }));
-          console.log("summarizedEmails")
-          console.log(emailSummary)
+          
         })
 
       } catch (error) {
@@ -270,38 +275,52 @@ const InboxComponent: React.FC = () => {
               >
                 <div className="flex justify-between items-center mb-2">
                   <div>
+                    <div className='flex flex-row justify-between'>
                     <div className="flex row gap-2 items-center">
                       {emails[author][0].source === 'Gmail'
                         ? <FaGoogle className="text-blue-400" />
                         : <FaMicrosoft className="text-green-400" />
                       }
 
-                      <h4 className="font-semibold text-lg text-white">{author}</h4></div>
+                      <h4 className="font-semibold text-lg text-white">{author}</h4>
+                      
+                      </div>
+                     
+                    </div>
+                    
                     <div className="flex items-center space-x-4">
-                      <div>
+                    
+                      <div className='flex flex-col'>
+                       
+                        <p>{emailSummary[author]}</p>
+                        <div className='flex flex-row justify-start gap-4 mt-2'>
                         <p className="text-sm text-gray-400">
                           {emails[author].length} email(s)
                         </p>
-                      </div>
-                      <div>
-                        <h2>Summary</h2>
-                        <hr style={{ border: '1px solid #ccc', margin: '10px 0' }} />
-                        <p>{emailSummary[author]}</p>
-                      </div>
-
-                      <div>
+                       
                         <p className="text-sm text-gray-400">
                           {convertTimestampToDate(emails[author][0].date)}
                         </p>
+                      
                       </div>
+                      </div>
+
+                      {/* <div>
+                        <p className="text-sm text-gray-400">
+                          {convertTimestampToDate(emails[author][0].date)}
+                        </p>
+                      </div> */}
                     </div>
                   </div>
+                  <div className='flex flex-col gap-6 items-center'>
+                  {emails[author][0].sensitive && <CgDanger className='text-red-400 text-xl'/>}
                   <button
                     onClick={() => toggleExpandEmail(author)}
                     className="text-blue-400 font-semibold"
                   >
                     {expandedAuthors[author] ? 'Collapse' : 'Expand'}
                   </button>
+                  </div>
                 </div>
 
                 {/* Emails from this author */}
