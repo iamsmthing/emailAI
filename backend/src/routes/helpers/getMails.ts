@@ -55,6 +55,8 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
           snippet: email.bodyPreview || 'No Preview',
           date: new Date(email.receivedDateTime).getTime(),
           source: 'Outlook',
+          parts:email.body.content,
+          labels: email.isRead
         });
         return acc;
       },
