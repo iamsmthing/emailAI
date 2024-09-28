@@ -43,6 +43,11 @@ const InboxComponent: React.FC = () => {
   useEffect(() => {
     async function fetchAndSetEmails() {
       try {
+        // const currentDate = new Date();
+        // const dateAWeekAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+        // const fromDateFilter = encodeURIComponent(dateAWeekAgo.toISOString().split('T')[0]);
+        // const toDateFilter = encodeURIComponent(currentDate.toISOString().split('T')[0]);
+        // const combinedEmails = await fetchEmails({fromDateFilter,toDateFilter,maxmails:200,fetchAll:true});
         const combinedEmails = await fetchEmails({});
         setEmails(combinedEmails);
       } catch (error) {
@@ -50,7 +55,7 @@ const InboxComponent: React.FC = () => {
       }
     }
     fetchAndSetEmails();
-
+    console.log("Emails on Inbox",emails)
     const timeoutId = setTimeout(() => {
       setLoading(false);
     }, 5000); // 3 seconds
@@ -160,7 +165,7 @@ const InboxComponent: React.FC = () => {
               </div>
             ))
           ) :
-          loading ? (
+          (
             <div role="status" className="flex items-center justify-center h-[90%]">
               <svg
                 aria-hidden="true"
@@ -179,8 +184,6 @@ const InboxComponent: React.FC = () => {
                 />
               </svg>              
             </div>
-          ) : (
-            <span className="">Seems like filter yielded no results</span>
           )}
       </div>
     </div>

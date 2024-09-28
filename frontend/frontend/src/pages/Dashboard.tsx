@@ -117,10 +117,11 @@ const EmailSummaryDashboard: React.FC = () => {
 const DashboardComponent: React.FC = () => {
   const currentDate = new Date();
   const dateAWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fromDateFilter = encodeURIComponent(dateAWeekAgo.toISOString().split('T')[0]);
+  const toDateFilter = encodeURIComponent(currentDate.toISOString().split('T')[0]);
   const [totalMail, setTotalMail] = useState(0);
   const [mockChartData, setMockChartData] = useState<any>([]);
-  const fromDateFilter = dateAWeekAgo.toISOString().split('T')[0];
-  const toDateFilter = currentDate.toISOString().split('T')[0];
+  
 
   useEffect(() => {  
     var fn=async () => {
