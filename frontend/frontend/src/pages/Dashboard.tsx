@@ -8,13 +8,14 @@ import InboxComponent from '../components/Inbox';
 import VoiceToText from './VoiceToText';
 
 import { fetchEmails } from '../util/helper';
+import GoogleUserInfo from '../components/Profile';
 
 const currentDate = new Date();
 const dateAWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
 
 const fromDateFilter = dateAWeekAgo.toISOString().split('T')[0];
 const toDateFilter = currentDate.toISOString().split('T')[0];
-var emails =await fetchEmails({fromDateFilter,toDateFilter,maxmails:500,fetchAll:true});
+var emails =await fetchEmails({fromDateFilter,toDateFilter,maxmails:1500,fetchAll:true});
 const emailArray = [...Object.values(emails)].flat();
 console.log("emails on dashboard", emailArray);
 
