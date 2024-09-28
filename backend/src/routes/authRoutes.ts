@@ -181,34 +181,42 @@ router.get('/emails', async (req, res) => {
   });
 
 router.get('/profile', )
+async function summarize(emailContent: string){
+  try {
+    const response = await GroqObject.chat.completions.create({
+        model: MODEL,
+        messages: [
+            {
+                role: 'system',
+                content: `${SUMMARIZER_SYSTEM_PROMPT} <email> ${emailContent} </email>`
+            }
+        ]
+    });
+    return  response.choices[0].message.content ;
+} catch (err) {
+    return  'Error generating summary.' ;
+}
+}
+router.post('/draftSummarize', async (req:Request, res:Response)=>{
+  try {
+    //{emailContent, string}
+    const emails = req.body as Record<string, string>;
+    const response = await summarize(emails.emailContent);
+    return{"emailContent": response}
+  } catch (error) {
+    
+  }
+});
 
-router.post('/summarize', async (req: Request, res: Response) => {
+router.post('/emailsSummarize', async (req: Request, res: Response) => {
   try {
       const emails = req.body as Record<string, string>[];
-
-      // if (!emails || !Array.isArray(emails)) {
-      //     return res.status(400).json({ error: 'Invalid input format. "emails" should be an array.' });
-      // }
-
       const summarizationPromises = emails.map(async (email) => {
           const [emailSender] = Object.keys(email);
           const emailContent = email[emailSender];
-
-          try {
-              const response = await GroqObject.chat.completions.create({
-                  model: MODEL,
-                  messages: [
-                      {
-                          role: 'system',
-                          content: `${SUMMARIZER_SYSTEM_PROMPT} <email> ${emailContent} </email>`
-                      }
-                  ]
-              });
-              return { [emailSender]: response.choices[0].message.content };
-          } catch (err) {
-              console.error(`Error processing email from ${emailSender}:`, err);
-              return { [emailSender]: 'Error generating summary.' };
-          }
+          const response = await summarize(emailContent);
+          return { [emailSender]: response};
+          
       });
 
       const results = await Promise.all(summarizationPromises);
