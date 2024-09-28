@@ -1,8 +1,7 @@
 // components/ShowMailModal.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import  { useEffect, useState } from 'react';
-import decode from 'decode-base64';
+
 interface ShowMailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,30 +9,33 @@ interface ShowMailModalProps {
 }
 
 const ShowMailModal: React.FC<ShowMailModalProps> = ({ isOpen, onClose, email }) => {
-    
-  if (!email) return null;
   const [htmlContent, setHtmlContent] = useState('');
-  console.log(email);
 
   useEffect(() => {
-    const base64Data=email.parts[1].body?.data;
-    console.log(base64Data);
-    const cleanedBase64 = base64Data.replace(/\s/g, '');
+    if (!email) return;
 
-      // Check if the Base64 string is valid
-      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(cleanedBase64)) {
-        throw new Error('Invalid Base64 string');
+    let base64Data = email.parts?.[1]?.body?.data;
+
+    if (base64Data) {
+      try {
+        // Fix for URL-safe Base64 (replace `-` with `+` and `_` with `/`)
+        base64Data = base64Data.replace(/-/g, '+').replace(/_/g, '/');
+
+        // Add padding if necessary
+        while (base64Data.length % 4 !== 0) {
+          base64Data += '=';
+        }
+
+        // Decode the Base64 string using `atob`
+        const decoded = atob(base64Data);
+        setHtmlContent(decoded);
+      } catch (error) {
+        console.error("Error decoding Base64 data:", error);
       }
-    
-    // Decode the Base64 string
-    const decoded = decode(cleanedBase64);
-    
-    // Convert Uint8Array to a string
-    const decodedString = new TextDecoder().decode(decoded);
-    
-    // Set the decoded HTML content
-    setHtmlContent(decodedString);
+    }
   }, [email]);
+
+  if (!email) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -41,11 +43,19 @@ const ShowMailModal: React.FC<ShowMailModalProps> = ({ isOpen, onClose, email })
         <DialogHeader>
           <DialogTitle>{email.subject}</DialogTitle>
         </DialogHeader>
-        <div className="p-4">
-          {/* <p><strong>From:</strong> {email.author}</p>
-          <p><strong>Date:</strong> {new Date(email.date).toLocaleDateString()}</p>
-          <p><strong>Snippet:</strong> {email.snippet}</p> */}
-           <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        <div className="">
+          <div
+            style={{
+              maxHeight: '400px', // Adjust height as needed
+              overflowY: 'auto',   // Enable vertical scrolling
+              padding: '1rem',
+              border: '1px solid #ccc', // Optional styling for better visibility
+              borderRadius: '5px',
+              maxWidth:'75%'
+            }}
+          >
+            <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

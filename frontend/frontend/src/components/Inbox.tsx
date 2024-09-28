@@ -63,6 +63,7 @@ const InboxComponent: React.FC = () => {
       setLoading(false);
     }, 5000); // 3 seconds
 
+    console.log(emails)
     return () => clearTimeout(timeoutId);
 
   }, [synced]);

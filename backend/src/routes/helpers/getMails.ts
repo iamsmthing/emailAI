@@ -4,39 +4,58 @@ import axios from 'axios';
 export const fetchOutlookMails = async (req: Request, res: Response, next: NextFunction) => {
   const accessToken = req.headers.authorization?.split(' ')[1]; // Extract token from the Authorization header
   const filter = req.query.filter;
+  const fetchAll = req.query.fetchAll === 'true'; // Expect a 'true' or 'false' string
+  const maxMails = parseInt(req.query.maxMails as string) || 100; // Default to 100 if not provided
+
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
 
   let endpoint = 'https://graph.microsoft.com/v1.0/me/messages';
   if (filter) {
-    console.log(endpoint)
     endpoint += `?${filter}`;
   }
+
+  let allEmails: any[] = [];
+  let nextLink: string | null = endpoint;
+
   try {
-    const response = await axios.get(endpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const messages = response.data.value;
-
-    const outlookEmailsGroupedBySender = messages.reduce((acc: Record<string, any[]>, email: any) => {
-      const sender = email.sender.emailAddress?.name || 'Unknown Sender';
-      if (!acc[sender]) {
-        acc[sender] = [];
-      }
-      acc[sender].push({
-        id: email.id,
-        subject: email.subject || 'No Subject',
-        snippet: email.bodyPreview || 'No Preview',
-        date: new Date(email.receivedDateTime).getTime(),
-        source: 'Outlook',
+    while (nextLink && (fetchAll || allEmails.length < maxMails)) {
+      const response:any = await axios.get(nextLink, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
       });
-      return acc;
-    }, {});
+
+      const messages = response.data.value;
+      allEmails.push(...messages);
+
+      nextLink = response.data['@odata.nextLink'] || null; // Check if there's a next page
+
+      if (!fetchAll && allEmails.length >= maxMails) {
+        allEmails = allEmails.slice(0, maxMails); // Limit to maxMails
+        break;
+      }
+    }
+
+    const outlookEmailsGroupedBySender = allEmails.reduce(
+      (acc: Record<string, any[]>, email: any) => {
+        const sender = email.sender?.emailAddress?.name || 'Unknown Sender';
+        if (!acc[sender]) {
+          acc[sender] = [];
+        }
+        acc[sender].push({
+          id: email.id,
+          subject: email.subject || 'No Subject',
+          snippet: email.bodyPreview || 'No Preview',
+          date: new Date(email.receivedDateTime).getTime(),
+          source: 'Outlook',
+        });
+        return acc;
+      },
+      {}
+    );
 
     return res.json(outlookEmailsGroupedBySender);
   } catch (error) {
@@ -44,6 +63,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
     return res.status(500).json({ error: 'Error fetching Outlook emails' });
   }
 };
+
 
 
 
@@ -106,7 +126,7 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
         index += limit;
 
         // Introduce a small delay to prevent rate-limiting
-        //await new Promise(resolve => setTimeout(resolve, 5));
+        await new Promise(resolve => setTimeout(resolve, 5));
       }
 
       return results;
@@ -137,7 +157,7 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
 
     if (allMessages.length > 0) {
       // Fetch detailed information for each message with limited concurrency
-      const emailDetails = await fetchEmailDetailsWithLimit(allMessages, 30);
+      const emailDetails = await fetchEmailDetailsWithLimit(allMessages, 20);
 
       // Group emails by author
       const gmailEmailsGroupedByAuthor = emailDetails.reduce((acc: Record<string, any[]>, email) => {
