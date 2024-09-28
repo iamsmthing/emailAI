@@ -8,6 +8,7 @@ import InboxComponent from '../components/Inbox';
 import VoiceToText from './VoiceToText';
 
 import { fetchEmails } from '../util/helper';
+import GoogleUserInfo from '../components/Profile';
 
 const currentDate = new Date();
 const dateAWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -30,13 +31,13 @@ console.log("emptyArrrr",freqArray)
 
 
 const mockChartData = [
+  { name: 'Sun', emails: freqArray[6] },
   { name: 'Mon', emails: freqArray[0] },
   { name: 'Tue', emails: freqArray[1] },
   { name: 'Wed', emails: freqArray[2] },
   { name: 'Thu', emails: freqArray[3] },
   { name: 'Fri', emails: freqArray[4] },
   { name: 'Sat', emails: freqArray[5] },
-  { name: 'Sun', emails: freqArray[6] },
 ];
 const msLogin = () => {
   window.location.href = 'http://localhost:4000/auth/microsoft';

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { FaSync } from "react-icons/fa";
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
-import { MdOutlineFilterList } from "react-icons/md";
 import { fetchEmails } from '../util/helper';
+import ShowMailModal from './showMailModal';
 
 
 const InboxComponent: React.FC = () => {
@@ -10,11 +10,19 @@ const InboxComponent: React.FC = () => {
   const [expandedAuthors, setExpandedAuthors] = useState<{ [key: string]: boolean }>({});
   const [synced, setSynced] = useState(false);
   const [loading, setLoading] = useState(true);
+   // State for modal
+   const [isModalOpen, setIsModalOpen] = useState(false);
+   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   // Function to be called when button is clicked
   const handleButtonClick = () => {
     setLoading(true)
     setEmails({})
     setSynced((prev) => !prev); // Toggle state to trigger useEffect
+  };
+
+  const showEmailContent = (email: any) => {
+    setSelectedEmail(email); // Set the email that was clicked
+    setIsModalOpen(true);    // Open the modal
   };
 
 
@@ -78,7 +86,7 @@ const InboxComponent: React.FC = () => {
             <h3>INBOX</h3>
           </div>
           <div className='flex flex-row gap-2 items-center justify-center'>
-            <MdOutlineFilterList className='text-purple-500 text-2xl cursor-pointer' />
+            {/* <ShowMailModal/> */}
             <FaSync className='text-purple-500 text-lg cursor-pointer' onClick={handleButtonClick} />
           </div>
         </div>
@@ -125,9 +133,10 @@ const InboxComponent: React.FC = () => {
                   <div className="space-y-2 mt-4">
                     {emails[author].map((email) => (
                       <div
+                      onClick={()=>showEmailContent(email)}
                         style={{ backgroundColor: 'rgb(23 29 75)' }}
                         key={email.id}
-                        className={`p-3 rounded-lg flex items-start border-l-4 ${email.source === 'Gmail'
+                        className={`p-3 cursor-pointer rounded-lg flex items-start border-l-4 ${email.source === 'Gmail'
                           ? 'border-blue-400'
                           : 'border-green-400'
                           }`}
@@ -154,6 +163,7 @@ const InboxComponent: React.FC = () => {
                           <p className="text-sm text-gray-300">{email.snippet}</p>
                         </div>
                       </div>
+                      
                     ))}
                   </div>
                 )}
@@ -182,6 +192,10 @@ const InboxComponent: React.FC = () => {
           ) : (
             <span className="">Seems like filter yielded no results</span>
           )}
+          {/* Modal for showing email content */}
+        {selectedEmail && (
+          <ShowMailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} email={selectedEmail} />
+        )}
       </div>
     </div>
 

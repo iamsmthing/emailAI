@@ -24,7 +24,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
     const messages = response.data.value;
 
     const outlookEmailsGroupedBySender = messages.reduce((acc: Record<string, any[]>, email: any) => {
-      const sender = email.sender.emailAddress.name || 'Unknown Sender';
+      const sender = email.sender.emailAddress?.name || 'Unknown Sender';
       if (!acc[sender]) {
         acc[sender] = [];
       }
@@ -141,6 +141,7 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
 
       // Group emails by author
       const gmailEmailsGroupedByAuthor = emailDetails.reduce((acc: Record<string, any[]>, email) => {
+      
         const fromHeader = email.payload.headers.find(
           (header: { name: string }) => header.name === 'From'
         );
@@ -157,6 +158,8 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
           date: Number(email.internalDate),
           labelIds: email.labelIds, // Read/unread status
           source: 'Gmail',
+          headers:email.payload.headers,
+          parts:email.payload.parts
         });
 
         return acc;
