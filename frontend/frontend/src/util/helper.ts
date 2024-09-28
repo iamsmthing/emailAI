@@ -32,7 +32,7 @@ const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string,
   }
   
   if (fromDateFilter) {
-    filterString += `receivedDateTime ge ${fromDateFilter} or `;
+    filterString += `receivedDateTime ge ${fromDateFilter} and `;
   }
   if (toDateFilter) {
     filterString += `receivedDateTime le ${toDateFilter} or `;
@@ -52,7 +52,7 @@ const fetchOutlookMails = async (fromDateFilter?: string, toDateFilter?: string,
       o_url += `?maxmails=${maxmails}`;
     }
     
-    if(maxmails || filterString){
+    if(maxmails || fetchAll){
       o_url += `&fetchAll=${fetchAll?"true":"false"}`
     } else if(fetchAll){
       o_url += `?fetchAll=${fetchAll?"true":"false"}`
@@ -111,7 +111,7 @@ const fetchGmailEmails = async (fromDateFilter?: string, toDateFilter?: string, 
     g_url += `?maxmails=${maxmails}`;
   }
   
-  if(maxmails || query){
+  if(maxmails || fetchAll){
     g_url += `&fetchAll=${fetchAll?"true":"false"}`
   } else if(fetchAll){
     g_url += `?fetchAll=${fetchAll?"true":"false"}`
@@ -158,7 +158,7 @@ export const fetchEmails = async ({
 
   try {
     if (token) {
-      gmailEmails = await fetchGmailEmails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails,fetchAll);
+      gmailEmails =await fetchGmailEmails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails,fetchAll);
     }
   } catch (error) {
     console.error('Error fetching Gmail emails:', error);
@@ -166,7 +166,7 @@ export const fetchEmails = async ({
 
   try {
     if (token_ms) {
-      outlookEmails = await fetchOutlookMails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails);
+      outlookEmails =await fetchOutlookMails(fromDateFilter, toDateFilter, fromFilter, containsFilter,maxmails,fetchAll);
     }
   } catch (error) {
     console.error('Error fetching Outlook emails:', error);

@@ -6,7 +6,7 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
   const filter = req.query.filter;
   const fetchAll = req.query.fetchAll === 'true'; // Expect a 'true' or 'false' string
   const maxMails = parseInt(req.query.maxMails as string) || 100; // Default to 100 if not provided
-
+  console.log(req.query);
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
@@ -20,8 +20,8 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
   let nextLink: string | null = endpoint;
 
   try {
-    while (nextLink && (fetchAll || allEmails.length < maxMails)) {
-      const response:any = await axios.get(nextLink, {
+    while (nextLink && (fetchAll || (!fetchAll && allEmails.length < maxMails))) {
+      const response: any = await axios.get(nextLink, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -33,11 +33,15 @@ export const fetchOutlookMails = async (req: Request, res: Response, next: NextF
 
       nextLink = response.data['@odata.nextLink'] || null; // Check if there's a next page
 
-      if (!fetchAll && allEmails.length >= maxMails) {
+      // If fetchAll is false and we have reached maxMails, stop fetching
+      if (allEmails.length >= maxMails) {
         allEmails = allEmails.slice(0, maxMails); // Limit to maxMails
         break;
       }
+      
+    
     }
+
 
     const outlookEmailsGroupedBySender = allEmails.reduce(
       (acc: Record<string, any[]>, email: any) => {
@@ -186,7 +190,7 @@ export const fetchGmailEmails = async (req: Request, res: Response, next: NextFu
       }, {});
 
       return res.json(gmailEmailsGroupedByAuthor);
-    } else if(allMessages.length > 0){res.json(allMessages)}else{
+    } else if (allMessages.length > 0) { res.json(allMessages) } else {
       return res.status(404).json({ error: 'No emails found' });
     }
   } catch (error) {
